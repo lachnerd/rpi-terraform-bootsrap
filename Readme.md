@@ -55,5 +55,29 @@ Are you sure you want to continue connecting (yes/no)? yes
 Warning: Permanently added '<IP-ADRESS>' (ECDSA) to the list of known hosts.
 pi@<IP-ADRESS>'s password: raspberry
 ```
-*
+
+## Terraform
+Version used: Terraform v0.11.11
+
+### initialize
+Before first use terroform modules must be initialized
+```bash
+   terraform init
+```
+
+### plan
+```bash
+   terraform plan
+```
+
+### apply
+```bash
+   terraform apply
+```
+approve with: yes
+
+### destroy
+```bash
+   terraform destroy
+```
 
