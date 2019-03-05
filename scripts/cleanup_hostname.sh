@@ -22,11 +22,12 @@ touch /tmp/hosts
 #writing defaults to /tmp/hosts
 sudo echo "127.0.0.1       localhost" | sudo tee -a /tmp/hosts
 sudo echo "127.0.0.1       localhost ip6-localhost ip6-loopback" | sudo tee -a /tmp/hosts
-sudo echo "ff02::1         ip6-allnodes" | sudo tee -a /tmp/hosts
-sudo echo "ff02::2         ip6-allrouters" | sudo tee -a /tmp/hosts
+sudo echo "127.0.1.1       raspberrypi" | sudo tee -a /tmp/hosts
 
 #copy /tmp/hosts over /etc/hosts
 sudo cp /tmp/hosts /etc/hosts
+#if rpi is not rebooted delete file
+rm /tmp/hosts
 
 #test hostname
 echo

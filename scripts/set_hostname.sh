@@ -16,7 +16,8 @@ echo
 sudo hostnamectl set-hostname $1
 
 #write hostname to /etc/hosts
-echo "127.0.1.1 ${1}" | sudo tee -a /etc/hosts
+#ersetzt 'raspberrypi' mit variable
+sudo sed -i "s/raspberrypi/${1}/g" /etc/hosts
 
 #test new hostname
 getent hosts
