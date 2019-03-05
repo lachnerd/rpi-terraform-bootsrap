@@ -13,6 +13,11 @@ resource "null_resource" "raspberry_pi_bootstrap" {
   
   #You cannot pass any arguments to scripts using the script or scripts arguments to this provisioner. 
   #If you want to specify arguments, upload the script with the file provisioner and then use inline to call it.
+
+
+  #----------------------------------------------------------------
+  # Hostname
+  #----------------------------------------------------------------
   provisioner "file" {
     source      = "./scripts/set_hostname.sh"
     destination = "/tmp/set_hostname.sh"
@@ -40,6 +45,40 @@ resource "null_resource" "raspberry_pi_bootstrap" {
       "chmod +x /tmp/cleanup_hostname.sh",
       #execute it
       "/tmp/cleanup_hostname.sh",    
+    ]
+  }
+
+  #----------------------------------------------------------------
+  # Time Zone
+  #----------------------------------------------------------------
+  
+  provisioner "file" {
+    source      = "./scripts/set_timezone.sh"
+    destination = "/tmp/set_timezone.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      #make script executable
+      "chmod +x /tmp/set_timezone.sh",
+      #execute it
+      "/tmp/set_timezone.sh ${var.timezone}",    
+    ]
+  }
+
+  provisioner "file" {
+    when = "destroy"
+    source      = "./scripts/cleanup_timezone.sh"
+    destination = "/tmp/cleanup_timezone.sh"
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      #make script executable
+      "chmod +x /tmp/cleanup_timezone.sh",
+      #execute it
+      "/tmp/cleanup_timezone.sh",    
     ]
   }
 }
