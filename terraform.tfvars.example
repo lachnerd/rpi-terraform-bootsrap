@@ -1,0 +1,17 @@
+# CONNECTION PARAMETERS
+ip_adress = "192.168.1.2"
+username = "pi"
+password = "raspberry"
+
+# CONIGURATION PARAMETERS
+hostname = "pi_new"
+new_password = "p8ssw0rd"
+# Validate timezone correctness against 'timedatectl list-timezones' 
+timezone = "Europe/Berlin"
+
+# NETWORK CONFIGURATION PARAMETERS
+# See man dhcpcd.conf for further info and examples. 
+# Get these right or risk loss of network connectivity.
+static_ip_and_mask = "192.168.1.100/24"
+static_router = "192.168.1.254"
+static_dns = "192.168.1.254"

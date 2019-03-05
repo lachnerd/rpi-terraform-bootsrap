@@ -1,0 +1,5 @@
+/terraform.tfvars.example
+/id_rsa.pub
+/id_rsa
+/.terraform
+/terraform.tfvars

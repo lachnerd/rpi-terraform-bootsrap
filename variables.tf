@@ -1,0 +1,9 @@
+variable "ip_adress" {}
+variable "username" {}
+variable "password" {}
+variable "new_password" {}
+variable "hostname" {}
+variable "timezone" {}
+variable "static_ip_and_mask" {}
+variable "static_router" {}
+variable "static_dns" {}
