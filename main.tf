@@ -10,11 +10,36 @@ resource "null_resource" "raspberry_pi_bootstrap" {
     private_key = "${file("./id_rsa")}"
     host = "${var.ip_adress}"
   }
+  
+  #You cannot pass any arguments to scripts using the script or scripts arguments to this provisioner. 
+  #If you want to specify arguments, upload the script with the file provisioner and then use inline to call it.
+  provisioner "file" {
+    source      = "./scripts/set_hostname.sh"
+    destination = "/tmp/set_hostname.sh"
+  }
 
   provisioner "remote-exec" {
     inline = [
-      # SET HOSTNAME    
-      "echo 'hallo'"       
+      #make script executable
+      "chmod +x /tmp/set_hostname.sh",
+      #execute it
+      "/tmp/set_hostname.sh ${var.hostname}",    
+    ]
+  }
+
+  provisioner "file" {
+    when = "destroy"
+    source      = "./scripts/cleanup_hostname.sh"
+    destination = "/tmp/cleanup_hostname.sh"
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      #make script executable
+      "chmod +x /tmp/cleanup_hostname.sh",
+      #execute it
+      "/tmp/cleanup_hostname.sh",    
     ]
   }
 }
