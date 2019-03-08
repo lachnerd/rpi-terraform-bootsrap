@@ -16,3 +16,9 @@ module "timezone" {
   private_key_path = "${var.private_key_path}"
   ip_adress = "${var.ip_adress}"
 }
+
+module "disableswap" {
+  source = "modules/disableswap"
+  private_key_path = "${var.private_key_path}"
+  ip_adress = "${var.ip_adress}"
+}
