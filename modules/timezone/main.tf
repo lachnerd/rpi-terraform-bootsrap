@@ -2,8 +2,8 @@
 locals{
   script_path = "${path.module}/scripts"
   tmp_path = "/tmp"
-  timezone_init_script = "set_timezone.sh"
-  timezone_destroy_script = "cleanup_timezone.sh"
+  init_script = "init_timezone.sh"
+  destroy_script = "destroy_timezone.sh"
   ssh_timeout = "10s"
   ssh_user = "pi"
   default_sleep = "1s"
@@ -26,36 +26,36 @@ resource "null_resource" "timezone" {
   # Hostname
   #----------------------------------------------------------------
   provisioner "file" {
-    source      = "${local.script_path}/${local.timezone_init_script}"
-    destination = "${local.tmp_path}/${local.timezone_init_script}"
+    source      = "${local.script_path}/${local.init_script}"
+    destination = "${local.tmp_path}/${local.init_script}"
   }
 
   provisioner "remote-exec" {
     inline = [
       "sleep ${local.default_sleep}",
-      "if [ ! -f ${local.tmp_path}/${local.timezone_init_script} ]; then echo '${local.tmp_path}/${local.timezone_init_script} not found!'; else echo '${local.tmp_path}/${local.timezone_init_script} found'; fi",
+      "if [ ! -f ${local.tmp_path}/${local.init_script} ]; then echo '${local.tmp_path}/${local.init_script} not found!'; else echo '${local.tmp_path}/${local.init_script} found'; fi",
       #make script executable
-      "chmod -v +x ${local.tmp_path}/${local.timezone_init_script}",
+      "chmod -v +x ${local.tmp_path}/${local.init_script}",
       #execute it
-      "${local.tmp_path}/${local.timezone_init_script} ${var.timezone}",
+      "${local.tmp_path}/${local.init_script} ${var.timezone}",
     ]
   }
 
   provisioner "file" {
     when = "destroy"
-    source      = "${local.script_path}/${local.timezone_destroy_script}"
-    destination = "${local.tmp_path}/${local.timezone_destroy_script}"
+    source      = "${local.script_path}/${local.destroy_script}"
+    destination = "${local.tmp_path}/${local.destroy_script}"
   }
 
   provisioner "remote-exec" {
     when = "destroy"
     inline = [
       "sleep ${local.default_sleep}",
-      "if [ ! -f ${local.tmp_path}/${local.timezone_destroy_script} ]; then echo '${local.tmp_path}/${local.timezone_destroy_script} not found!'; else echo '${local.tmp_path}/${local.timezone_destroy_script} found'; fi",
+      "if [ ! -f ${local.tmp_path}/${local.destroy_script} ]; then echo '${local.tmp_path}/${local.destroy_script} not found!'; else echo '${local.tmp_path}/${local.destroy_script} found'; fi",
       #make script executable
-      "chmod +x ${local.tmp_path}/${local.timezone_destroy_script}",
+      "chmod +x ${local.tmp_path}/${local.destroy_script}",
       #execute it
-      "${local.tmp_path}/${local.timezone_destroy_script}",    
+      "${local.tmp_path}/${local.destroy_script}",    
     ]
   }
 
