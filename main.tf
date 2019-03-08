@@ -22,3 +22,9 @@ module "disableswap" {
   private_key_path = "${var.private_key_path}"
   ip_adress = "${var.ip_adress}"
 }
+
+module "update" {
+  source = "modules/update"
+  private_key_path = "${var.private_key_path}"
+  ip_adress = "${var.ip_adress}"
+}
