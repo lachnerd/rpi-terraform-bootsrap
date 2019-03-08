@@ -2,14 +2,13 @@
 locals{
   script_path = "${path.module}/scripts"
   tmp_path = "/tmp"
-  init_script = "init_disableswap.sh"
-  destroy_script = "destroy_disableswap.sh"
+  init_script = "init_update.sh"
   ssh_timeout = "10s"
   ssh_user = "pi"
   default_sleep = "1s"
 }
 
-resource "null_resource" "disableswap" {
+resource "null_resource" "update" {
   connection {
     type = "ssh"
     private_key = "${file("${var.private_key_path}")}"
@@ -21,10 +20,6 @@ resource "null_resource" "disableswap" {
   #You cannot pass any arguments to scripts using the script or scripts arguments to this provisioner. 
   #If you want to specify arguments, upload the script with the file provisioner and then use inline to call it.
 
-
-  #----------------------------------------------------------------
-  # Disable Swap
-  #----------------------------------------------------------------
   provisioner "file" {
     source      = "${local.script_path}/${local.init_script}"
     destination = "${local.tmp_path}/${local.init_script}"
@@ -40,24 +35,4 @@ resource "null_resource" "disableswap" {
       "${local.tmp_path}/${local.init_script}",
     ]
   }
-  
-  #enable swap on destroy
-  provisioner "file" {
-    when = "destroy"
-    source      = "${local.script_path}/${local.destroy_script}"
-    destination = "${local.tmp_path}/${local.destroy_script}"
-  }
-
-  provisioner "remote-exec" {
-    when = "destroy"
-    inline = [
-      "sleep ${local.default_sleep}",
-      "if [ ! -f ${local.tmp_path}/${local.destroy_script} ]; then echo '${local.tmp_path}/${local.destroy_script} not found!'; else echo '${local.tmp_path}/${local.destroy_script} found'; fi",
-      #make script executable
-      "chmod +x ${local.tmp_path}/${local.destroy_script}",
-      #execute it
-      "${local.tmp_path}/${local.destroy_script}",    
-    ]
-  }
-
 }
