@@ -8,3 +8,4 @@ variable "static_ip_and_mask" {}
 variable "static_router" {}
 variable "static_dns" {}
 variable "private_key_path" {}
+variable "initial_user" {}

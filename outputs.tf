@@ -3,7 +3,7 @@ output "ip_adress" {
   description = "device ip adress"  
 }
 
-output "hostname" {
+/*output "hostname" {
   value = "${module.hostname.hostname}"
   description = "the new hostname - this is no real output cause its no computed value"
 }
@@ -11,4 +11,4 @@ output "hostname" {
 output "timezone" {
   value = "${module.timezone.timezone}"
   description = "the new timezone - this is no real output cause its no computed value"
-}
+}*/
