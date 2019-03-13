@@ -24,8 +24,8 @@ resource "null_resource" "init" {
     provisioner "remote-exec" {
     inline = [
       "echo 'creating script folders'",
-      "mkdir ${local.host_script_path}", 
-      "mkdir ${local.host_template_path}",  
+      "mkdir -p ${local.host_script_path}", 
+      "mkdir -p ${local.host_template_path}",  
     ]
   }
 
