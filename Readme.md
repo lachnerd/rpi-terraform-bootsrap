@@ -39,7 +39,8 @@ This is for Provisioning a Rpi2/3 with Raspian Lite
 * Enter no Passphrase 
 * Save Private & Public Key
 
-### Copy SSH Key to RPi
+
+### Copy SSH Key to RPi manually (optional - not neccessary)
 * 2 Variants available
 #### ssh-copy-id
 ```bash
@@ -74,7 +75,11 @@ Before first use terroform modules must be initialized
 ```bash
    terraform apply
 ```
-approve with: yes
+* approve with: yes
+* terraform will do the following
+  * copy public key to rpi
+  * connect with private key
+
 
 ### destroy
 ```bash

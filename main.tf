@@ -9,30 +9,29 @@ locals{
   default_sleep = "1s"
 }
 
+
 /******************************************************************************************************
  * INIT
  ******************************************************************************************************/
-resource "null_resource" "init" {  
+
+resource "null_resource" "init" {
   connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    type = "ssh"    
     user = "${var.initial_user}"
+    password = "${var.initial_password}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
   }
 
-    provisioner "remote-exec" {
+  provisioner "remote-exec" {
     inline = [
       "echo 'creating script folders'",
-      "mkdir -p ${local.host_script_path}", 
-      "mkdir -p ${local.host_template_path}",  
+      "mkdir -vp ${local.host_script_path}", 
+      "mkdir -vp ${local.host_template_path}",
     ]
   }
-
-  triggers = {
-    always_run = "${timestamp()}"
-  }
 }
+
 /******************************************************************************************************
  * COPY
  ******************************************************************************************************/
@@ -40,9 +39,9 @@ resource "null_resource" "init" {
 resource "null_resource" "copy" {  
   depends_on = ["null_resource.init"]
   connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    type = "ssh"    
     user = "${var.initial_user}"
+    password = "${var.initial_password}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
   }
@@ -59,137 +58,23 @@ resource "null_resource" "copy" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo 'copy ressources to host'",      
+      "echo 'copy ressources to host'",   
     ]
   }
   provisioner "remote-exec" {
     when = "destroy"
     inline = [
       "echo 'deleting scripts and templates'",
-      "rm -r ${local.host_script_path}",   
-      "rm -r ${local.host_template_path}",    
-    ]
-  }
-
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-}
-/******************************************************************************************************
- * UPDATE
- ******************************************************************************************************/
-resource "null_resource" "update" {
-  depends_on = ["null_resource.copy"]
-
-  connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
-    user = "${var.initial_user}"
-    host = "${var.ip_adress}"
-    timeout = "${local.ssh_timeout}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x ${local.host_script_path}/init_update.sh",
-      "${local.host_script_path}/init_update.sh ${var.timezone}",    
-    ]
-  }
-}
-/******************************************************************************************************
- * HOSTNAME
- ******************************************************************************************************/
-resource "null_resource" "hostname" {
-  depends_on = ["null_resource.update"]
-
-  connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
-    user = "${var.initial_user}"
-    host = "${var.ip_adress}"
-    timeout = "${local.ssh_timeout}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x ${local.host_script_path}/init_hostname.sh",
-      "${local.host_script_path}/init_hostname.sh ${var.hostname}",    
-    ]
-  }
-
-  provisioner "remote-exec" {
-    when = "destroy"
-    inline = [
-      "chmod +x ${local.host_script_path}/destroy_hostname.sh",
-      "${local.host_script_path}/destroy_hostname.sh",    
+      "rm -fr ${local.host_script_path}",   
+      "rm -fr ${local.host_template_path}",    
     ]
   }
 }
 
 /******************************************************************************************************
- * DISABLESWAP
+ * ADDUSER
  ******************************************************************************************************/
-resource "null_resource" "disableswap" {
-  depends_on = ["null_resource.update"]
-
-  connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
-    user = "${var.initial_user}"
-    host = "${var.ip_adress}"
-    timeout = "${local.ssh_timeout}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x ${local.host_script_path}/init_disableswap.sh",
-      "${local.host_script_path}/init_disableswap.sh",    
-    ]
-  }
-
-  provisioner "remote-exec" {
-    when = "destroy"
-    inline = [
-      "chmod +x ${local.host_script_path}/destroy_disableswap.sh",
-      "${local.host_script_path}/destroy_disableswap.sh",    
-    ]
-  }
-}
-
-/******************************************************************************************************
- * TIMEZONE
- ******************************************************************************************************/
-resource "null_resource" "timezone" {
-  depends_on = ["null_resource.update"]
-
-  connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
-    user = "${var.initial_user}"
-    host = "${var.ip_adress}"
-    timeout = "${local.ssh_timeout}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x ${local.host_script_path}/init_timezone.sh",
-      "${local.host_script_path}/init_timezone.sh ${var.timezone}",    
-    ]
-  }
-
-  provisioner "remote-exec" {
-    when = "destroy"
-    inline = [
-      "chmod +x ${local.host_script_path}/destroy_timezone.sh",
-      "${local.host_script_path}/destroy_timezone.sh",    
-    ]
-  }
-}
-
-/******************************************************************************************************
- * PASSWORD
- ******************************************************************************************************/
-/*resource "random_string" "password" {
+resource "random_string" "password" {
   length = 24
   special = false
   min_upper = 8
@@ -197,27 +82,176 @@ resource "null_resource" "timezone" {
   min_numeric = 4  
 }
 
-resource "null_resource" "password" {
-  depends_on = ["random_string.password"]
+resource "null_resource" "adduser" {
+  depends_on = ["null_resource.copy"]
 
   connection {
-    type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    type = "ssh"    
     user = "${var.initial_user}"
+    password = "${var.initial_password}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "echo pi:${random_string.password.result} | /usr/sbin/chpasswd", 
+      "sudo chmod +x ${local.host_script_path}/init_adduser.sh",
+      "${local.host_script_path}/init_adduser.sh ${var.new_user} ${random_string.password.result} ${var.initial_user}",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy" 
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/destroy_adduser.sh",
+      "${local.host_script_path}/destroy_adduser.sh ${var.initial_user} ${var.initial_password} ${var.new_user}",
+    ]
+  }
+}
+/******************************************************************************************************
+ * SSH COPY ID
+ ******************************************************************************************************/
+ # connects as new user & copies the public key to its /home/pi/.ssh/authorized_keys
+resource "null_resource" "ssh-copy-id" {
+  depends_on = ["null_resource.adduser"]
+  connection {
+    type = "ssh"    
+    user = "${var.new_user}"
+    password = "${random_string.password.result}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "file" {
+    source      = "${var.public_key_path}"
+    destination = "/tmp/id_rsa.pub"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      #create .ssh folder in /home/pi
+      "mkdir -vp ~/.ssh",
+      #write public key to /home/pi/.ssh/authorized_keys
+      "cat /tmp/id_rsa.pub >> ~/.ssh/authorized_keys", 
+      #delete tmp file
+      "sudo rm -fv /tmp/id_rsa.pub",
+    ]
+  }
+}
+
+/******************************************************************************************************
+ * HOSTNAME
+ ******************************************************************************************************/
+
+resource "null_resource" "hostname" {
+  depends_on = ["null_resource.ssh-copy-id"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_hostname.sh",
+      "sudo ${local.host_script_path}/init_hostname.sh ${var.hostname}",    
     ]
   }
 
   provisioner "remote-exec" {
     when = "destroy"
     inline = [
-      "echo pi:raspberry | /usr/sbin/chpasswd",  
+      "sudo chmod +x ${local.host_script_path}/destroy_hostname.sh",
+      "sudo ${local.host_script_path}/destroy_hostname.sh",    
     ]
   }
-}*/
+}
+
+/******************************************************************************************************
+ * DISABLESWAP
+ ******************************************************************************************************/
+
+resource "null_resource" "disableswap" {
+  depends_on = ["null_resource.ssh-copy-id"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_disableswap.sh",
+      "sudo ${local.host_script_path}/init_disableswap.sh",    
+    ]
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/destroy_disableswap.sh",
+      "sudo ${local.host_script_path}/destroy_disableswap.sh",    
+    ]
+  }
+}
+
+/******************************************************************************************************
+ * TIMEZONE
+ ******************************************************************************************************/
+
+resource "null_resource" "timezone" {
+  depends_on = ["null_resource.ssh-copy-id"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_timezone.sh",
+      "sudo ${local.host_script_path}/init_timezone.sh ${var.timezone}",    
+    ]
+  }
+
+  provisioner "remote-exec" {
+    when = "destroy"
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/destroy_timezone.sh",
+      "sudo ${local.host_script_path}/destroy_timezone.sh",    
+    ]
+  }
+}
+
+
+/******************************************************************************************************
+ * UPDATE
+ ******************************************************************************************************/
+
+resource "null_resource" "update" {
+  depends_on = ["null_resource.timezone"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_update.sh",
+      "sudo ${local.host_script_path}/init_update.sh",    
+    ]
+  }
+}
