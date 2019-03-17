@@ -19,3 +19,7 @@ variable "initial_password" {
 variable "new_user" {
     default = "rpi-admin-user"
 }
+
+variable "docker_version" {
+    default = "18.06"
+}

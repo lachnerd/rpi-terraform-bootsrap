@@ -4,8 +4,7 @@ output "ip_adress" {
 }
 
 output "admin_user_password" {
-  value = "${random_string.password.result}"
-  description = "device ip adress"  
+  value = "${random_string.password.result}" 
 }
 
 /*output "hostname" {

@@ -3,8 +3,8 @@
 # Provisioners by default run only at resource creation, additional runs without cleanup may introduce problems.
 # https://www.terraform.io/docs/provisioners/index.html
 locals{
-  host_script_path = "/tmp/scripts"
-  host_template_path = "/tmp/templates"
+  host_script_path = "/opt/terraform/scripts"
+  host_template_path = "/opt/terraform/templates"
   ssh_timeout = "10s"
   default_sleep = "1s"
 }
@@ -26,8 +26,9 @@ resource "null_resource" "init" {
   provisioner "remote-exec" {
     inline = [
       "echo 'creating script folders'",
-      "mkdir -vp ${local.host_script_path}", 
-      "mkdir -vp ${local.host_template_path}",
+      "sudo mkdir -vp ${local.host_script_path}", 
+      "sudo mkdir -vp ${local.host_template_path}",
+      "sudo chmod -R 777 /opt/terraform/",
     ]
   }
 }
@@ -252,6 +253,125 @@ resource "null_resource" "update" {
     inline = [
       "sudo chmod +x ${local.host_script_path}/init_update.sh",
       "sudo ${local.host_script_path}/init_update.sh",    
+    ]
+  }
+}
+
+/******************************************************************************************************
+ * TOOLS
+ ******************************************************************************************************/
+
+resource "null_resource" "tools" {
+  depends_on = ["null_resource.update"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_tools.sh",
+      "sudo ${local.host_script_path}/init_tools.sh",    
+    ]
+  }
+}
+
+/******************************************************************************************************
+ * REBOOT
+ ******************************************************************************************************/
+/*
+  Rebooting si tricky since Terraform 0.11.3
+  this is the only solution i got working for Raspian adding another 80s
+  and 2 Ressources only for Rebooting, but without it Docker install is running in some
+  Issues
+  see https://github.com/hashicorp/terraform/issues/17844
+*/
+resource "null_resource" "reboot" {
+  depends_on = ["null_resource.tools"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo '--------------------------------------------------------'",
+      "echo '------------      R E B O O T - H A C K    -------------'",
+      "echo '------------------------ 90s ---------------------------'",
+      #schedule reboot in 1min
+      "sudo shutdown -r &",
+      #2sec sleep for adding the reboot securely
+      "sleep 2"
+    ]
+  }
+}
+
+
+resource "null_resource" "reboot_wait" {
+  depends_on = ["null_resource.reboot"]
+  
+  #!waits 90s - only works on Windows
+  #90s was best for my setup so reboot is under 30s - but it can take longer
+  #80s would even work but i added 10s for safety
+  provisioner "local-exec" {
+    command     = "Start-Sleep 90",
+    interpreter = ["PowerShell", "-Command"]
+  }
+}
+
+/******************************************************************************************************
+ * DOCKER
+ ******************************************************************************************************/
+
+resource "null_resource" "docker" {
+  depends_on = ["null_resource.reboot_wait"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_docker.sh",
+      "sudo ${local.host_script_path}/init_docker.sh ${var.new_user}",    
+    ]
+  }
+  
+  provisioner "remote-exec" {
+    inline = [
+      "hello world",
+      "docker run arm32v5/hello-world",    
+    ]
+  }
+}
+
+resource "null_resource" "docker_test" {
+  depends_on = ["null_resource.docker"]
+
+  connection {
+    type = "ssh"
+    private_key = "${file("${var.private_key_path}")}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+  
+  provisioner "remote-exec" {
+    inline = [
+      "hello world",
+      "docker run arm32v5/hello-world",    
     ]
   }
 }

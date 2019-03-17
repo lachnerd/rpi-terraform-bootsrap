@@ -14,11 +14,7 @@ echo
 
 #do upgrades
 echo "----------------"
-echo "list upgrade"
-echo "----------------"
-sudo apt-get upgrade -y
-echo "----------------"
-echo "list upgrade kernel"
+echo "dist-upgrade"
 echo "----------------"
 sudo apt-get dist-upgrade -y
 #possible broken install fixing
@@ -38,5 +34,5 @@ sudo apt-get clean -y
 echo "-------------------------------------"
 echo "new update status"
 echo "-------------------------------------"
-sudo apt update -y
-sudo apt list --upgradable
+#sudo apt update -y
+#sudo apt list --upgradable
