@@ -5,6 +5,7 @@ This is for Provisioning a Rpi2/3 with Raspian Lite
   * Transcend Premium 300x 32GB
 * Raspian 2018-11-13-raspbian-stretch-lite
 * Docker 18.06.2~ce~3-0~raspbian
+* Terraform v0.11.11
 
 
 ## Requirements
