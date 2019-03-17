@@ -1,5 +1,11 @@
 # Raspberry Pi Initialization with Terraform
 This is for Provisioning a Rpi2/3 with Raspian Lite
+## Current Versions
+* Raspberry Pi 3B
+  * Transcend Premium 300x 32GB
+* Raspian 2018-11-13-raspbian-stretch-lite
+* Docker 18.06.2~ce~3-0~raspbian
+
 
 ## Requirements
 * Raspberry Pi 2 or 3
