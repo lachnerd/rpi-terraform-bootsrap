@@ -7,8 +7,33 @@ locals{
   host_template_path = "/opt/terraform/templates"
   ssh_timeout = "10s"
   default_sleep = "1s"
+  ssh_private_key = "${path.module}/.ssh/id_rsa"
+  ssh_public_key = "${path.module}/.ssh/id_rsa.pub"
 }
 
+/******************************************************************************************************
+ * SSH KEY
+ ******************************************************************************************************/
+#generates a RSA private key for authentication
+resource "tls_private_key" "rsa_private" {
+  depends_on = ["null_resource.init"]
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+#creates a local file id_rsa containing the actual private key in PEM Format
+resource "local_file" "private_key" {
+    count = 1
+    content = "${tls_private_key.rsa_private.private_key_pem}"
+    filename = "${local.ssh_private_key}"
+}
+
+#creates a local file id_rsa.pub containing the actual public key in openssh format
+resource "local_file" "public_key" {
+    count = 1
+    content = "${tls_private_key.rsa_private.public_key_openssh}"
+    filename = "${local.ssh_public_key}"
+}
 
 /******************************************************************************************************
  * INIT
@@ -84,7 +109,7 @@ resource "random_string" "password" {
 }
 
 resource "null_resource" "adduser" {
-  depends_on = ["null_resource.copy"]
+  depends_on = ["null_resource.copy", "random_string.password"]
 
   connection {
     type = "ssh"    
@@ -114,7 +139,7 @@ resource "null_resource" "adduser" {
  ******************************************************************************************************/
  # connects as new user & copies the public key to its /home/pi/.ssh/authorized_keys
 resource "null_resource" "ssh-copy-id" {
-  depends_on = ["null_resource.adduser"]
+  depends_on = ["null_resource.adduser", "local_file.public_key"]
   connection {
     type = "ssh"    
     user = "${var.new_user}"
@@ -124,7 +149,7 @@ resource "null_resource" "ssh-copy-id" {
   }
 
   provisioner "file" {
-    source      = "${var.public_key_path}"
+    source      = "${local.ssh_public_key}"
     destination = "/tmp/id_rsa.pub"
   }
 
@@ -149,7 +174,7 @@ resource "null_resource" "hostname" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -180,7 +205,7 @@ resource "null_resource" "disableswap" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -211,7 +236,7 @@ resource "null_resource" "timezone" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -243,7 +268,7 @@ resource "null_resource" "update" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -266,7 +291,7 @@ resource "null_resource" "tools" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -295,7 +320,7 @@ resource "null_resource" "reboot" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -336,7 +361,7 @@ resource "null_resource" "docker" {
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -345,7 +370,7 @@ resource "null_resource" "docker" {
   provisioner "remote-exec" {
     inline = [
       "sudo chmod +x ${local.host_script_path}/init_docker.sh",
-      "sudo ${local.host_script_path}/init_docker.sh ${var.new_user}",    
+      "sudo ${local.host_script_path}/init_docker.sh ${var.new_user} ${var.docker_version}",    
     ]
   }
   
@@ -357,12 +382,13 @@ resource "null_resource" "docker" {
   }
 }
 
+#test of hello-world without sudo in new connection to work properly
 resource "null_resource" "docker_test" {
   depends_on = ["null_resource.docker"]
 
   connection {
     type = "ssh"
-    private_key = "${file("${var.private_key_path}")}"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
     host = "${var.ip_adress}"
     timeout = "${local.ssh_timeout}"
@@ -371,7 +397,8 @@ resource "null_resource" "docker_test" {
   provisioner "remote-exec" {
     inline = [
       "hello world",
-      "docker run arm32v5/hello-world",    
+      "docker run --name hello-world-container arm32v5/hello-world",
+      "docker rm hello-world-container"
     ]
   }
 }
