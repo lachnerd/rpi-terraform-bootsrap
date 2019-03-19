@@ -7,7 +7,4 @@ hostname = "new_pi_host"
 # Validate timezone correctness against 'timedatectl list-timezones' 
 timezone = "Europe/Berlin"
 
-# SSH Key Path
-private_key_path = "id_rsa"
-
 new_user = "pi-user"

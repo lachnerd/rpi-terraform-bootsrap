@@ -1,6 +1,10 @@
 variable "ip_adress" {}
-variable "hostname" {}
-variable "timezone" {}
+variable "hostname" {
+    default = "rpi-host"
+}
+variable "timezone" {
+    default = "Europe/London"
+}
 
 variable "initial_user" {
     default = "pi"

@@ -1,5 +1,7 @@
 # Raspberry Pi Initialization with Terraform
-This is for Provisioning a Rpi2/3 with Raspian Lite
+This is for Provisioning a Rpi2/3 with Raspian Lite. 
+I have implemented this for easily bootstrapping RPI Docker Hosts
+
 ## Current Versions
 * Raspberry Pi 3B
   * Transcend Premium 300x 32GB
@@ -19,6 +21,7 @@ This is for Provisioning a Rpi2/3 with Raspian Lite
 * Rapsian Image
   * URL: https://www.raspberrypi.org/downloads/raspbian/
   * Version: 2018-11-13-raspbian-stretch-lite.zip
+* a DHCP Server for getting a IP-Adress
 
 ## Manual Steps
 ### Flashing Image
@@ -37,38 +40,16 @@ This is for Provisioning a Rpi2/3 with Raspian Lite
 * look in your Router & identify the IP-Adress of RPi 
 * write that adress down
 
-### Generate SSH Key for easy connection to RPi
-* Generate SSH Key following this [article](https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
-* open bash (linux/windows/git bash)
-* ```bash
-  ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-  ```
-* Enter no Passphrase 
-* Save Private & Public Key
-
-
-### Copy SSH Key to RPi manually (optional - not neccessary)
-* 2 Variants available
-#### ssh-copy-id
-```bash
-   ssh-copy-id pi@<IP-ADDRESS>
-   password: raspberry
-```
-#### manually
-```bash
-$cat ~/.ssh/id_rsa.pub | ssh pi@<IP-ADRESS> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-The authenticity of host '<IP-ADRESS> (<IP-ADRESS>)' can't be established.
-ECDSA key fingerprint is SHA256:TDaxHjcZfoPqgvY2Mq0RVvcakKlEsU9AntEzicUXl6U.
-Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '<IP-ADRESS>' (ECDSA) to the list of known hosts.
-pi@<IP-ADRESS>'s password: raspberry
-```
-
 ## Terraform
 Version used: Terraform v0.11.11
 
+### terraform.tfvars
+Create a file "terraform.tfvars" for easy adding variable defaults.
+Te only variable that must be set is "ip_adress" for initial connection to Raspberry Pi.
+An Example File "terraform.tfvars.example" is included.
+
 ### initialize
-Before first use terroform modules must be initialized
+Before first use terraform modules must be initialized
 ```bash
    terraform init
 ```
@@ -84,7 +65,11 @@ Before first use terroform modules must be initialized
 ```
 * approve with: yes
 * terraform will do the following
+  * generate a tls key
   * copy public key to rpi
+  * adds a new admin user
+  * generate a new password
+  * first connect with user & password
   * connect with private key
 
 
@@ -92,4 +77,4 @@ Before first use terroform modules must be initialized
 ```bash
    terraform destroy
 ```
-
+Not every single ressource has destroy abilities yet.
