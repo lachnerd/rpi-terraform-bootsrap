@@ -7,12 +7,12 @@ output "admin_user_password" {
   value = "${random_string.password.result}" 
 }
 
-/*output "hostname" {
-  value = "${module.hostname.hostname}"
-  description = "the new hostname - this is no real output cause its no computed value"
+output "private_key" {
+  value = "${tls_private_key.rsa_private.private_key_pem}" 
+  description = "The private key data in PEM format"
 }
 
-output "timezone" {
-  value = "${module.timezone.timezone}"
-  description = "the new timezone - this is no real output cause its no computed value"
-}*/
+output "public_key" {
+  value = "${tls_private_key.rsa_private.public_key_pem }" 
+  description = "The public key data in PEM format"
+}

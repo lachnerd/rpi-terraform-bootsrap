@@ -35,7 +35,7 @@ sudo apt-get update
 #list available versions for info
 apt-cache madison docker-ce
 #install
-sudo apt-get install -y docker-ce=18.06.2~ce~3-0~raspbian containerd.io
+sudo apt-get install -y docker-ce=$2 containerd.io
 #show version
 sudo docker info
 
