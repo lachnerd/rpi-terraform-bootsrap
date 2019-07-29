@@ -306,6 +306,29 @@ resource "null_resource" "tools" {
 }
 
 /******************************************************************************************************
+ * STATIC IP
+ ******************************************************************************************************/
+
+resource "null_resource" "staticip" {
+  depends_on = ["null_resource.update"]
+
+  connection {
+    type = "ssh"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
+    user = "${var.new_user}"
+    host = "${var.ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_static_ip.sh",
+      "sudo ${local.host_script_path}/init_static_ip.sh ${var.network_interface} ${var.gateway_ip_adress} ${var.static_ip_adress}",    
+    ]
+  }
+}
+
+/******************************************************************************************************
  * REBOOT
  ******************************************************************************************************/
 /*
@@ -316,7 +339,7 @@ resource "null_resource" "tools" {
   see https://github.com/hashicorp/terraform/issues/17844
 */
 resource "null_resource" "reboot" {
-  depends_on = ["null_resource.tools"]
+  depends_on = ["null_resource.staticip"]
 
   connection {
     type = "ssh"
@@ -363,7 +386,7 @@ resource "null_resource" "docker" {
     type = "ssh"
     private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
-    host = "${var.ip_adress}"
+    host = "${var.static_ip_adress}"
     timeout = "${local.ssh_timeout}"
   }
 
@@ -390,7 +413,7 @@ resource "null_resource" "docker_test" {
     type = "ssh"
     private_key = "${tls_private_key.rsa_private.private_key_pem}"
     user = "${var.new_user}"
-    host = "${var.ip_adress}"
+    host = "${var.static_ip_adress}"
     timeout = "${local.ssh_timeout}"
   }
   
@@ -401,4 +424,90 @@ resource "null_resource" "docker_test" {
       "docker rm hello-world-container"
     ]
   }
+}
+
+/******************************************************************************************************
+ * DOCKER-COMPOSE
+ ******************************************************************************************************/
+
+resource "null_resource" "dockercompose" {
+  depends_on = ["null_resource.docker_test"]
+
+  connection {
+    type = "ssh"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
+    user = "${var.new_user}"
+    host = "${var.static_ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_dockercompose.sh",
+      "sudo ${local.host_script_path}/init_dockercompose.sh",    
+    ]
+  }
+}
+
+/******************************************************************************************************
+ * traefik
+ ******************************************************************************************************/
+ 
+data "template_file" "traefik_toml" {
+  template = "${file("${path.module}/templates/traefik/traefik.toml")}"
+
+  vars {
+    debug = "true"
+    traefik_url = "traefik.${var.domain}"
+    domain = "${var.domain}"
+  }
+}
+
+data "template_file" "traefik_docker_compose" {
+  template = "${file("${path.module}/templates/traefik/docker-compose.yml")}"
+
+  vars {
+    traefik_image = "traefik:1.7.11-alpine"
+    traefik_url = "traefik.${var.domain}"
+  }
+}
+
+resource "null_resource" "traefik" {
+  depends_on = ["null_resource.dockercompose"]
+
+  connection {
+    type = "ssh"
+    private_key = "${tls_private_key.rsa_private.private_key_pem}"
+    user = "${var.new_user}"
+    host = "${var.static_ip_adress}"
+    timeout = "${local.ssh_timeout}"
+  }
+
+    #das traefik config file für den traefik LB
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x ${local.host_script_path}/init_traefik.sh",
+      "sudo ${local.host_script_path}/init_traefik.sh",    
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'RENDERING: /opt/traefik/config/traefik.toml'",
+      "cat <<TRAEFIK > /opt/traefik/config/traefik.toml",
+      "${data.template_file.traefik_toml.rendered}",
+      "TRAEFIK"
+      ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'RENDERING: /opt/traefik/docker-compose.yml'",
+      "cat <<TRAEFIK_COMPOSE > /opt/traefik/docker-compose.yml",
+      "${data.template_file.traefik_docker_compose.rendered}",
+      "TRAEFIK_COMPOSE"
+      ]
+  }
+
 }

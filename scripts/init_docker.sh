@@ -1,7 +1,4 @@
 #!/bin/bash
-
-#sets the right timezone
-
 echo
 echo "-------------------------------------"
 echo "Passed script arguments:"
@@ -21,7 +18,7 @@ sudo dpkg --configure -a
 echo "apt-get install -f"
 sudo apt-get install -f -y
 echo "update & upgrade"
-sudo apt-get update && sudo apt-get upgrade
+sudo apt-get update && sudo apt-get upgrade -y
 #installation see https://abelperezmartinez.blogspot.com/2019/02/how-to-install-docker-on-raspbian-stretch.html
 #install needed software
 echo "apt-get install"
