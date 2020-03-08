@@ -11,3 +11,7 @@ variable "initial_user" {
 variable "initial_password" {
     default = "raspberry"
 }
+
+variable ssh_private_key {}
+
+variable ssh_public_key {}

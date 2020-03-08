@@ -7,8 +7,6 @@ locals{
   host_template_path = "/opt/terraform/templates"
   ssh_timeout = "10s"
   default_sleep = "1s"
-  ssh_private_key = "${path.module}/.ssh/id_rsa"
-  ssh_public_key = "${path.module}/.ssh/id_rsa.pub"
 }
 
 /******************************************************************************************************
@@ -25,34 +23,39 @@ resource "tls_private_key" "rsa_private" {
 resource "local_file" "private_key" {
     count = 1
     content = "${tls_private_key.rsa_private.private_key_pem}"
-    filename = "${local.ssh_private_key}"
+    filename = "${var.ssh_private_key}"
 }
 
 #creates a local file id_rsa.pub containing the actual public key in openssh format
 resource "local_file" "public_key" {
     count = 1
     content = "${tls_private_key.rsa_private.public_key_openssh}"
-    filename = "${local.ssh_public_key}"
+    filename = "${var.ssh_public_key}"
 }
 
-/******************************************************************************************************
- * INIT
- ******************************************************************************************************/
+# creates windows compatible ppk file
+resource "null_resource" "ppk_generate" {
+  depends_on = ["local_file.private_key","local_file.public_key"]
+  provisioner "local-exec" {
+    working_dir = dirname("${var.ssh_private_key}")
+    command = "puttygen id_rsa -o id_rsa.ppk -O private"
+  }
+}
 
 resource "null_resource" "init" {
   connection {
     type = "ssh"    
-    user = "${var.initial_user}"
-    password = "${var.initial_password}"
-    host = "${var.ip_adress}"
-    timeout = "${local.ssh_timeout}"
+    user = "var.initial_user"
+    password = "var.initial_password"
+    host = "var.ip_adress"
+    timeout = "local.ssh_timeout"
   }
 
   provisioner "remote-exec" {
     inline = [
       "echo 'creating script folders'",
-      "sudo mkdir -vp ${local.host_script_path}", 
-      "sudo mkdir -vp ${local.host_template_path}",
+      "sudo mkdir -vp local.host_script_path", 
+      "sudo mkdir -vp local.host_template_path",
       "sudo chmod -R 777 /opt/terraform/",
     ]
   }
