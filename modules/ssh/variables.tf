@@ -1,7 +1,10 @@
 variable "ip_adress" {}
-#raspberrypi
-variable "hostname" {}
-    default = "raspberrypi"
+#variable "static_ip_adress" {}
+
+variable "timezone" {
+    default = "Europe/London"
+}
+
 variable "initial_user" {
     default = "pi"
 }
