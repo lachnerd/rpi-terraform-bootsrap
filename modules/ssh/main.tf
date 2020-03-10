@@ -37,11 +37,13 @@ resource "local_file" "public_key" {
 resource "null_resource" "ppk_generate" {
   depends_on = ["local_file.private_key","local_file.public_key"]
   provisioner "local-exec" {
+    #dirname gets folder from key File
     working_dir = dirname("${var.ssh_private_key}")
     command = "puttygen id_rsa -o id_rsa.ppk -O private"
   }
 }
 
+/*
 resource "null_resource" "init" {
   connection {
     type = "ssh"    
@@ -60,3 +62,4 @@ resource "null_resource" "init" {
     ]
   }
 }
+*/
