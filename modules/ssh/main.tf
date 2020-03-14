@@ -1,20 +1,9 @@
-# Raspberry Pi Terraform Bootstrap Provisioner (Tested with Raspbian Stretch).
-# This is a run-once bootstrap Terraform provisioner for a Raspberry Pi.  
-# Provisioners by default run only at resource creation, additional runs without cleanup may introduce problems.
-# https://www.terraform.io/docs/provisioners/index.html
+
 locals{
-  host_script_path = "/opt/terraform/scripts"
-  host_template_path = "/opt/terraform/templates"
-  ssh_timeout = "10s"
-  default_sleep = "1s"
 }
 
-/******************************************************************************************************
- * SSH KEY
- ******************************************************************************************************/
 #generates a RSA private key for authentication
 resource "tls_private_key" "rsa_private" {
-  //depends_on = ["null_resource.init"]
   algorithm = "RSA"
   rsa_bits  = 4096
 }
@@ -42,24 +31,3 @@ resource "null_resource" "ppk_generate" {
     command = "puttygen id_rsa -o id_rsa.ppk -O private"
   }
 }
-
-/*
-resource "null_resource" "init" {
-  connection {
-    type = "ssh"    
-    user = "var.initial_user"
-    password = "var.initial_password"
-    host = "var.ip_adress"
-    timeout = "local.ssh_timeout"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'creating script folders'",
-      "sudo mkdir -vp local.host_script_path", 
-      "sudo mkdir -vp local.host_template_path",
-      "sudo chmod -R 777 /opt/terraform/",
-    ]
-  }
-}
-*/
