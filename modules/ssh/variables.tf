@@ -1,5 +1,9 @@
 variable "ip_adress" {}
 
+variable "ssh_folder" {
+  description="the path containing the ssh key files"
+}
+
 variable "timezone" {
     default = "Europe/London"
 }
@@ -11,6 +15,3 @@ variable "initial_password" {
     default = "raspberry"
 }
 
-variable ssh_private_key {}
-
-variable ssh_public_key {}

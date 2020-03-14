@@ -19,8 +19,5 @@ locals {
 module "ssh" {
   source = ".//modules/ssh"
   ip_adress = "${var.ip_adress}"
-  initial_user = "${var.initial_user}"
-  initial_password = "${var.initial_password}"
-  ssh_private_key = "${local.ssh_folder}/id_rsa"
-  ssh_public_key = "${local.ssh_folder}/id_rsa.pub"
+  ssh_folder = "${local.ssh_folder}"
 }
