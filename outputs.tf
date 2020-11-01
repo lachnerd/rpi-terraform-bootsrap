@@ -1,18 +1,19 @@
-output "ip_adress" {
-  value = "${var.ip_adress}"
-  description = "device ip adress"  
-}
-
-output "admin_user_password" {
-  value = "${random_string.password.result}" 
-}
-
 output "private_key" {
-  value = "${tls_private_key.rsa_private.private_key_pem}" 
-  description = "The private key data in PEM format"
+  description="tls/ssh private key"
+  value = "${module.ssh.private_key}"
 }
 
 output "public_key" {
-  value = "${tls_private_key.rsa_private.public_key_pem }" 
-  description = "The public key data in PEM format"
+  description="tls/ssh public key"
+  value = "${module.ssh.public_key}"
+}
+
+output "user" {
+  description="new user"
+  value = "${var.user}"
+}
+
+output "password" {
+  description="password from new sudo user"
+  value = "${module.adduser.password}"
 }
