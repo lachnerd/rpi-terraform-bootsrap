@@ -25,11 +25,13 @@ resource "null_resource" "updates" {
   provisioner "remote-exec" {
     inline = [
       "echo '-------------------------------------'",
-      "echo 'updating'",
+      "echo 'updating - start'",
       "echo '-------------------------------------'",
       "echo 'updating apt...'",
       "sudo apt-get update",  
-      "echo '-------------------------------------'"
+      "echo '-------------------------------------'",
+      "echo 'updating - end'",
+      "echo '-------------------------------------'",
     ]
   }
 }
@@ -48,7 +50,7 @@ resource "null_resource" "upgrades" {
   provisioner "remote-exec" {
     inline = [
       "echo '-------------------------------------'",
-      "echo 'upgrading'",
+      "echo 'upgrading - start'",
       "echo '-------------------------------------'",
       "echo 'upgrading....'",
       "sudo apt-get -qq dist-upgrade -y",      
@@ -59,7 +61,9 @@ resource "null_resource" "upgrades" {
       "sudo apt-get autoclean",
       "echo 'updating apt again'",
       "sudo apt-get update",
-      "echo '-------------------------------------'"
+      "echo '-------------------------------------'",
+      "echo 'upgrading - end'",
+      "echo '-------------------------------------'",
     ]
   }
 }
@@ -78,11 +82,13 @@ resource "null_resource" "tools" {
   provisioner "remote-exec" {
     inline = [
       "echo '-------------------------------------'",
-      "echo 'install tools'",
+      "echo 'install tools - start'",
       "echo '-------------------------------------'",
       "echo 'installing....'",
       "sudo apt-get -qq install mc nano software-properties-common htop curl ncdu apt-transport-https ca-certificates perl rpm gcc make parted jq p7zip-full -y",      
-      "echo '-------------------------------------'"
+      "echo '-------------------------------------'",
+      "echo 'install tools - end'",
+      "echo '-------------------------------------'",
     ]
   }
 }

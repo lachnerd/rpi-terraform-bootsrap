@@ -34,7 +34,7 @@ resource "null_resource" "adduser" {
   provisioner "remote-exec" {
     inline = [
       "echo '-------------------------------------'",
-      "echo 'Add user'",
+      "echo 'Add user - start'",
       "echo '-------------------------------------'",
       "sudo adduser ${var.user} --gecos 'First Last,RoomNumber,WorkPhone,HomePhone' --disabled-password",
       "echo 'set password'",
@@ -48,6 +48,9 @@ resource "null_resource" "adduser" {
       "cut -d: -f1 /etc/passwd",
       "echo 'check if user ${var.user} is sudoer'",
       "sudo -l -U ${var.user}",
+      "echo '-------------------------------------'",
+      "echo 'Add user - end'",
+      "echo '-------------------------------------'",
     ]
   }
 }

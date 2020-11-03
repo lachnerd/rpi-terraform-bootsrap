@@ -64,4 +64,5 @@ module "setup" {
   ip_adress = "${var.ip_adress}"
   timezone = "${var.timezone}"
   hostname = "${var.hostname}"
+  email = "${var.email}"
 }

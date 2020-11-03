@@ -13,3 +13,5 @@ variable "private_key" {}
 variable "timezone" {}
 
 variable "hostname" {}
+
+variable "email" {}

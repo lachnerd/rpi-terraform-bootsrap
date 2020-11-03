@@ -21,3 +21,7 @@ variable "timezone" {
 variable "docker_version" {
     default = "18.06.2~ce~3-0~raspbian"
 }
+
+variable "email" {
+    default = "user@example.com"
+}

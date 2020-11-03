@@ -31,7 +31,7 @@ resource "null_resource" "ssh_copy" {
   provisioner "remote-exec" {
     inline = [
       "echo '-------------------------------------'",
-      "echo 'copy ssh public key...'",
+      "echo 'copy ssh public key - start'",
       "echo '-------------------------------------'",
       "echo 'create .ssh folder'",
       "mkdir -vp ~/.ssh",
@@ -41,7 +41,10 @@ resource "null_resource" "ssh_copy" {
       "sudo rm -fv /tmp/id_rsa.pub",
       "echo '-------------------------------------'",
       "echo 'display authorized_keys'",
-      "cat ~/.ssh/authorized_keys",      
+      "cat ~/.ssh/authorized_keys",
+      "echo '-------------------------------------'",
+      "echo 'copy ssh public key - end'",
+      "echo '-------------------------------------'",     
     ]
   }
 }
