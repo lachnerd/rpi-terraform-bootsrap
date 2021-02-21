@@ -1,10 +1,15 @@
 # CONNECTION PARAMETERS
-ip_adress = "192.168.2.101"
+ip_adress = "192.168.100.151"
 
 # CONIGURATION PARAMETERS
-hostname = "new_pi_host"
+hostname = "danube"
 
 # Validate timezone correctness against 'timedatectl list-timezones' 
 timezone = "Europe/Berlin"
 
-new_user = "pi-user"
+user = "sisko"
+
+initial_user = "pi"
+initial_password = "raspberry"
+
+email = "heinzepreller@gmail.com"
