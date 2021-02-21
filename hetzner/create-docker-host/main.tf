@@ -38,11 +38,29 @@ module "docker" {
   primary_ip = module.hetzner_host[count.index].host_ip
   docker_ce_version = var.docker_ce_version
 }
-
+/*
 module "ufw" {
   count = var.nodes
   source = "../../modules/ufw"
   depends_on = [module.docker]
   ssh_private_key = module.ssh[count.index].private_key
   primary_ip = module.hetzner_host[count.index].host_ip
+}*/
+
+module "k3s_master" {
+  count = 1
+  source = "../../modules/k3s/master"
+  depends_on = [module.docker]
+  ssh_private_key = module.ssh[count.index].private_key
+  primary_ip = module.hetzner_host[count.index].host_ip
+}
+
+module "k3s_node" {
+  count = var.nodes - 1
+  source = "../../modules/k3s/node"
+  depends_on = [module.k3s_master]
+  ssh_private_key = module.ssh[count.index+1].private_key
+  primary_ip = module.hetzner_host[count.index+1].host_ip
+  k3s_master_ip = module.k3s_master[0].k3s_master_ip
+  k3s_token = module.k3s_master[0].k3s_token
 }
