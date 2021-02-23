@@ -8,4 +8,4 @@ variable "primary_ip" {
 
 variable "k3s_channel" {
   default = "stable"
-} 
+}

@@ -8,11 +8,12 @@ apt-get install -yq \
 
 # k3s
 curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=${k3s_channel} K3S_TOKEN=${k3s_token} sh -s - \
-    --flannel-backend=host-gw \
-    --disable local-storage \
-    --disable-cloud-controller \
+    --docker \
+    --flannel-backend=ipsec \
+    #--disable-cloud-controller \
     --disable traefik \
-    --disable servicelb \
+    #--disable servicelb \
+    #--disable local-storage \
     --node-taint node-role.kubernetes.io/master:NoSchedule \
     --kubelet-arg 'cloud-provider=external'
 

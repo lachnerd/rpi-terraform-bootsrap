@@ -18,12 +18,10 @@ resource "null_resource" "k3s-install" {
   //template content (local.k3s_init) got written to remote file /tmp/k3s_init.sh
   provisioner "remote-exec" {
   inline = [
-      "--- echo 'render k3s worker script' ---",
       "tee /tmp/k3s_init.sh <<EOF",
       local.k3s_init,
       "EOF",
       "chmod +x /tmp/k3s_init.sh",
-      "--- echo 'install k3s master' ---",
       "/tmp/k3s_init.sh"
     ]
   }

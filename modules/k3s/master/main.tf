@@ -23,16 +23,12 @@ resource "null_resource" "k3s-install" {
   
   //template content (local.k3s_init) got written to remote file /tmp/k3s_init.sh
   provisioner "remote-exec" {
-  inline = [
-      "--- echo 'render k3s master script' ---",
-      "tee /tmp/k3s_init.sh <<EOF",
-      local.k3s_init,
-      "EOF",
-      "chmod +x /tmp/k3s_init.sh",
-      "--- echo 'install k3s master' ---",
-      "/tmp/k3s_init.sh",
-      "--- echo 'k3s kubeconfig' ---",
-      "cat /etc/rancher/k3s/k3s.yaml"
-    ]
+    inline = [      
+        "tee /tmp/k3s_init.sh <<EOF",
+        local.k3s_init,
+        "EOF",
+        "chmod +x /tmp/k3s_init.sh",    
+        "/tmp/k3s_init.sh"
+      ]
   }
 }
